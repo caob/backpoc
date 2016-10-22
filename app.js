@@ -25,8 +25,10 @@ var http = require('http');
 
 
 var port = normalizePort(process.env.PORT || '5000');
-app.set('port', "3000");
+app.set('port', port);
 var server = http.createServer(app);
+
+console.log("Port",port);
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
@@ -96,7 +98,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', routes);
 app.use('/users', users);
 app.use('/todos', todos);
-app.use('/getCentros', BackPoc_Route);
+app.use('/api', BackPoc_Route);
+
 
 
  
