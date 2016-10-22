@@ -51,23 +51,32 @@ router.use(function(req, res, next) {
 });
 
 router.post('/auth', function(req, res) {
-	var authorization=	req.body.data.replace("\"X-Auth-Service-Provider\" =","\"X-Auth-Service-Provider\" :")
+	console.log("*** *** *** ");
+	var dlogin=new vDigitlogin.DigitsLogin(req, res,"TEST TEST TEST");
+		dlogin.https=https;
+		dlogin.model=vUsuario;
+		dlogin.login(req.body['X-Verify-Credentials-Authorization']);
+		
+
+	/*  
+	var authorization=	req.body.replace("\"X-Auth-Service-Provider\" =","\"X-Auth-Service-Provider\" :")
 		authorization=	authorization.replace("\"X-Verify-Credentials-Authorization\" =","\"X-Verify-Credentials-Authorization\" :")
-		  
+		
 		authorization=authorization.replace(/\\"/g, "")
 		authorization=authorization.replace(";", ",")
 		authorization=authorization.replace(";", "")
 		data=JSON.parse(authorization)
 
-	var dlogin=new vDigitlogin.DigitsLogin(req, res,"TEST TEST TEST");
-		dlogin.https=https;
-		dlogin.model=vUsuario;
-		dlogin.login(data['X-Verify-Credentials-Authorization']);
+	console.log("*** *** *** ",data['X-Verify-Credentials-Authorization']);
+	*/
+	
+
 		//var unauth="OAuth oauth_signature=jAsjY%2Fa1yIt1yYj%2Fb2gmi7paswQ%3D,oauth_nonce=2762E16D-BA89-4EB2-8A26-DFC2DB5355E2,oauth_timestamp=1477141999,oauth_consumer_key=zIRJzhMzKX32NsznWECvBzVRa,oauth_token=088752106371084289-sM9uS3EZlZPxZJZVKshYcvyoZFIAX4w,oauth_version=1.0,oauth_signature_method=HMAC-SHA1";
 		//dlogin.login(unauth);
 		// ERROR {     "X-Auth-Service-Provider" = "https://api.digits.com/1.1/sdk/account.json";     "X-Verify-Credentials-Authorization" = "OAuth oauth_signature=\"jAsjY%2Fa1yIt1yYj%2Fb2gmi7paswQ%3D\",oauth_nonce=\"2762E16D-BA89-4EB2-8A26-DFC2DB5355E2\",oauth_timestamp=\"1477141999\",oauth_consumer_key=\"zIRJzhMzKX32NsznWECvBzVRa\",oauth_token=\"888752106371084289-sM9uS3EZlZPxZJZVKshYcvyoZFIAX4w\",oauth_version=\"1.0\",oauth_signature_method=\"HMAC-SHA1\""; }
 
   		// return res.json({});
+  		 
 });
 
 router.get('/getCentros', function(req, res) {
