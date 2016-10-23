@@ -1,3 +1,4 @@
+/*
 var express = require('express');
 var router = express.Router();
 var mongoose = require('mongoose');
@@ -76,7 +77,7 @@ router.delete( '/:id', function( request, response ) {
 });
 
 module.exports = router;
-
+*/
 /*
 
 curl http://localhost:3000/todos

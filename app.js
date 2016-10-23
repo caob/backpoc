@@ -4,21 +4,78 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var mongoose = require('mongoose');
+
 
 var app = express();
+
+var modelsDB = require('./app/models/db')
+console.log("modelsDB",modelsDB);
+// Passport -------------------------------------------
+
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
+
+
+// Session -------------------------------------------
+var session = require('express-session');
+var MongoDBStore = require('connect-mongodb-session')(session);
+var MongoDBStore = require('connect-mongodb-session')(session);
+var store = new MongoDBStore(
+    {
+      uri: modelsDB,
+      collection: 'app_sessions'
+    });
+
+  // Catch errors
+  store.on('error', function(error) {
+    assert.ifError(error);
+    assert.ok(false);
+  });
+   app.use(require('express-session')({
+    secret: 'This is a secret yeah!!',
+    cookie: {
+      maxAge: 500 * 1 * 1 * 1 * 1 // 1 week
+      //maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
+      //maxAge: 1000 * 30   // 24 hs
+    },
+    store: store,
+    // Boilerplate options, see:
+    // * https://www.npmjs.com/package/express-session#resave
+    // * https://www.npmjs.com/package/express-session#saveuninitialized
+    resave: true,
+    saveUninitialized: true
+  }));
+
+// Session End -------------------------------------------
+
+// passport USE
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var todos = require('./routes/todos');
-var BackPoc_Route = require('./routes/BackPoc');
+var BackPoc_Route = require('./routes/BackPoc')(passport);
 
+// passport config
+var Account = require('./app/models/usuario');
+passport.use(new LocalStrategy(Account.authenticate()));
+passport.serializeUser(Account.serializeUser());
+passport.deserializeUser(Account.deserializeUser());
 
+mongoose.connect(modelsDB);
 
-var db = require('./models/db');
-var  Post=require('./models/Posts');
-var  Todos=require('./models/Todos');
-var  BackPoc=require('./models/BackPoc');
+require('./config/passport')(passport);
 
+/*
+var db = require('./app/models/db');
+var  Post=require('./app/models/Posts');
+var  Todos=require('./app/models/Todos');
+var  BackPoc=require('./app/models/BackPoc');
 
+*/
 var debug = require('debug')('flapper-news:server');
 var http = require('http');
 
@@ -97,10 +154,16 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', routes);
-app.use('/users', users);
-app.use('/todos', todos);
-app.use('/api', BackPoc_Route);
+
+
+
+require('./app/routes.js')(app, passport);
+
+//app.use('/', routes);
+//app.use('/users', users);
+//app.use('/todos', todos);
+//app.use('/api', BackPoc_Route);
+
 
 
 
