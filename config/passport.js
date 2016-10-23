@@ -1,57 +1,68 @@
-var LocalStrategy   = require('passport-local').Strategy;
-var User            = require('../app/models/usuario');
+
 
 // expose this function to our app using module.exports
-module.exports = function(passport) {
-    passport.serializeUser(function(user, done) {
+module.exports = function(passport,LocalStrategy,User) {
+   /* passport.serializeUser(function(user, done) {
         console.log("passport.serializeUser",user );
         done(null, user.id);
     });
 
     passport.deserializeUser(function(id, done) {
         console.log("deserialize User",id );
-        User.findById(id, function(err, user) {
+        User.findOne({ 'id_str' :  id }, function(err, user) {
             console.log("deserialize User -> done",user );
             done(err, user);
         });
     });
 
-    passport.use('local', new LocalStrategy({
+    passport.use( 'local', new LocalStrategy({
         // by default, local strategy uses username and password, we will override with email
-        usernameField : 'id',
+        usernameField : 'id_str',
         passReqToCallback : true // allows us to pass back the entire request to the callback
     },
-    function(req, id, done) {
+    function(username, password, done) {
         console.log("Buscar usuario -> ");
-        process.nextTick(function() {
-
-        User.findOne({ 'id' :  id }, function(err, user) {
-            // if there are any errors, return the error
-            if (err)
-                return done(err);
-
-            return done(null, false, req.flash('signupMessage', 'That email is already taken.'));
-            
-            /*
-
-            if (user) {
-                return done(null, false, req.flash('signupMessage', 'That email is already taken.'));
-            } else {
-
-                var newUser            = new User();
-                newUser.local.email    = email;
-                newUser.local.password = newUser.generateHash(password);
-                newUser.save(function(err) {
-                    if (err)
-                        throw err;
-                    return done(null, newUser);
-                });
-            }*/
-
-        });    
-
-        });
-
+        User.findOne({ 'id_str' :  id }, function (err, user) {
+            console.log("Buscar usuario -> ");
+                if (err) { 
+                  return done(err);
+                }
+                if (!user) {
+                  return done(null, false, { message: 'Incorrect username.' });
+                }
+                
+                return done(null, user);
+              });
     }));
+    */
+
+
+ passport.serializeUser(function(user, done) {
+    console.log("1. deserialize User",user.id_str );
+    done(null, user.id_str);
+});
+
+passport.deserializeUser(function(id, done) {
+    console.log("2. deserialize User -> ",id );
+      User.findOne({ id_str: id }, function(err, user) {
+        done(err, user);
+      });
+  
+});
+
+
+passport.use(new LocalStrategy(
+  function(username, password, done) {
+    console.log("0. DONE ->",username)
+    User.findOne({ id_str: username }, function(err, user) {
+      if (err) { return done(err); }
+      if (!user) {
+        return done(null, false, { message: 'Incorrect username.' });
+      }
+      
+      return done(null, user);
+    });
+  }
+));
 
 };

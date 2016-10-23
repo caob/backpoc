@@ -6,12 +6,11 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var flash    = require('connect-flash');
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
+var debug = require('debug')('flapper-news:server');
+var http = require('http');
 
-var vUsuario     = require('./app/models/usuario');
-   vUsuario.findOne({  "id_str": "788752106371084289" }, function (err, item) {
-              console.log("++++",err, item);
-
-            }) 
 
 var app = express();
 
@@ -19,8 +18,8 @@ var modelsDB = require('./app/models/db')
 console.log("modelsDB",modelsDB);
 // Passport -------------------------------------------
 
-var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
+
+//var LocalStrategy = require('passport-local').Strategy;
 
 
 // Session -------------------------------------------
@@ -38,51 +37,17 @@ var store = new MongoDBStore(
     assert.ok(false);
   });
 
-  app.use(require('express-session')({
-    secret: 'This is a secret yeah!!',
-    cookie: {
-      maxAge: 500 * 1 * 1 * 1 * 1 // 1 week
-      //maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
-      //maxAge: 1000 * 30   // 24 hs
-    },
-    store: store,
-    // Boilerplate options, see:
-    // * https://www.npmjs.com/package/express-session#resave
-    // * https://www.npmjs.com/package/express-session#saveuninitialized
-    resave: true,
-    saveUninitialized: true
-  }));
 
 // Session End -------------------------------------------
 
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(flash());
+
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var todos = require('./routes/todos');
-var BackPoc_Route = require('./routes/BackPoc')(passport);
+var User  = require('./app/models/usuario');
+require('./config/passport')(passport,LocalStrategy,User);
 
-// passport config
-//var Account = require('./app/models/usuario');
-//passport.use(new LocalStrategy(Account.authenticate()));
-//passport.serializeUser(Account.serializeUser());
-//passport.deserializeUser(Account.deserializeUser());
-
-mongoose.connect(modelsDB);
-
-require('./config/passport')(passport);
-
-/*
-var db = require('./app/models/db');
-var  Post=require('./app/models/Posts');
-var  Todos=require('./app/models/Todos');
-var  BackPoc=require('./app/models/BackPoc');
-
-*/
-var debug = require('debug')('flapper-news:server');
-var http = require('http');
 
 
 
@@ -149,26 +114,39 @@ function onListening() {
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-// uncomment after placing your favicon in /public
-//app.use(favicon(__dirname + '/public/favicon.ico'));
+var sessionOpts = {
+  saveUninitialized: true, // saved new sessions
+  resave: false, // do not automatically write to the session store
+  store: store,
+  secret: 'This is a secret yeah!!',
+  cookie : { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 7 } // configure when sessions expires
+}
+
+
 app.use(logger('dev'));
 app.use(bodyParser.json());
-//app.use(bodyParser.json({verify:function(req,res,buf){req.rawBody=buf}}))
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser(sessionOpts.secret));
+
+ 
+app.use(require('express-session')(sessionOpts));
+ 
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash());
 app.use(express.static(path.join(__dirname, 'public')));
 
-
-
+ 
 
 require('./app/routes.js')(app, passport);
 
-//app.use('/', routes);
-//app.use('/users', users);
-//app.use('/todos', todos);
-//app.use('/api', BackPoc_Route);
+//var Account = require('./app/models/usuario');
+//passport.use(new LocalStrategy(Account.authenticate()));
+//passport.serializeUser(Account.serializeUser());
+//passport.deserializeUser(Account.deserializeUser());
 
 
+mongoose.connect(modelsDB);
 
 
  
