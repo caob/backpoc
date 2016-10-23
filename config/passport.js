@@ -4,28 +4,27 @@ var User            = require('../app/models/usuario');
 // expose this function to our app using module.exports
 module.exports = function(passport) {
     passport.serializeUser(function(user, done) {
+        console.log("passport.serializeUser",user );
         done(null, user.id);
     });
 
     passport.deserializeUser(function(id, done) {
+        console.log("deserialize User",id );
         User.findById(id, function(err, user) {
+            console.log("deserialize User -> done",user );
             done(err, user);
         });
     });
 
-    passport.use('local-signup', new LocalStrategy({
+    passport.use('local', new LocalStrategy({
         // by default, local strategy uses username and password, we will override with email
         usernameField : 'id',
         passReqToCallback : true // allows us to pass back the entire request to the callback
     },
     function(req, id, done) {
-
-        // asynchronous
-        // User.findOne wont fire unless data is sent back
+        console.log("Buscar usuario -> ");
         process.nextTick(function() {
 
-        // find a user whose email is the same as the forms email
-        // we are checking to see if the user trying to login already exists
         User.findOne({ 'id' :  id }, function(err, user) {
             // if there are any errors, return the error
             if (err)

@@ -5,7 +5,13 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
+var flash    = require('connect-flash');
 
+var vUsuario     = require('./app/models/usuario');
+   vUsuario.findOne({  "id_str": "788752106371084289" }, function (err, item) {
+              console.log("++++",err, item);
+
+            }) 
 
 var app = express();
 
@@ -20,7 +26,6 @@ var LocalStrategy = require('passport-local').Strategy;
 // Session -------------------------------------------
 var session = require('express-session');
 var MongoDBStore = require('connect-mongodb-session')(session);
-var MongoDBStore = require('connect-mongodb-session')(session);
 var store = new MongoDBStore(
     {
       uri: modelsDB,
@@ -32,7 +37,8 @@ var store = new MongoDBStore(
     assert.ifError(error);
     assert.ok(false);
   });
-   app.use(require('express-session')({
+
+  app.use(require('express-session')({
     secret: 'This is a secret yeah!!',
     cookie: {
       maxAge: 500 * 1 * 1 * 1 * 1 // 1 week
@@ -49,10 +55,9 @@ var store = new MongoDBStore(
 
 // Session End -------------------------------------------
 
-// passport USE
-
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(flash());
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
@@ -60,10 +65,10 @@ var todos = require('./routes/todos');
 var BackPoc_Route = require('./routes/BackPoc')(passport);
 
 // passport config
-var Account = require('./app/models/usuario');
-passport.use(new LocalStrategy(Account.authenticate()));
-passport.serializeUser(Account.serializeUser());
-passport.deserializeUser(Account.deserializeUser());
+//var Account = require('./app/models/usuario');
+//passport.use(new LocalStrategy(Account.authenticate()));
+//passport.serializeUser(Account.serializeUser());
+//passport.deserializeUser(Account.deserializeUser());
 
 mongoose.connect(modelsDB);
 
@@ -147,10 +152,9 @@ app.set('view engine', 'ejs');
 // uncomment after placing your favicon in /public
 //app.use(favicon(__dirname + '/public/favicon.ico'));
 app.use(logger('dev'));
-// app.use(bodyParser.json());
-app.use(bodyParser.json({verify:function(req,res,buf){req.rawBody=buf}}))
+app.use(bodyParser.json());
+//app.use(bodyParser.json({verify:function(req,res,buf){req.rawBody=buf}}))
 app.use(bodyParser.urlencoded({ extended: false }));
-
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 

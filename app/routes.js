@@ -6,6 +6,7 @@ var vUsuario     = require('./models/usuario');
 var vDigitlogin     = require('./login');
 var https = require("https");
 
+
     
 app.use(function(req, res, next) {
         var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -13,9 +14,27 @@ app.use(function(req, res, next) {
         next(); 
     });
 
-    app.post('/api/login', passport.authenticate('local'), function(req, res) {
-        //res.redirect('/');
-        console.log("LOGIN");
+    app.post('/api/ok', passport.authenticate('local'), function(req, res) {
+        console.log("LOGIN OK");
+        res.json({res:"ok"});
+    });
+    app.post('/api/error', passport.authenticate('local'), function(req, res) {
+        console.log("LOGIN Error");
+        res.json({res:"Error"});
+    });
+    
+
+    app.post('/api/login', passport.authenticate('local', {
+        successRedirect : '/api/ok', // redirect to the secure profile section
+        failureRedirect : '/api/login', // redirect back to the signup page if there is an error
+        failureFlash : true // allow flash messages
+    }));
+    app.get('/api/login', function(req, res) {
+    var data={"success_messages" : req.flash('success_messages'),
+                "error_messages": req.flash('error_messages')};
+
+         res.json(data);
+
     });
 
     app.post('/api/auth', function(req, res) {
@@ -27,7 +46,8 @@ app.use(function(req, res, next) {
     });
 
     app.param('id', function(req, res, next, id) {
-         vUsuario.findOne({ 'id': id }, '', function (err, item) {
+        console.log("Param",id);
+         vUsuario.findOne({ 'id_str': id }, function (err, item) {
               if (err) { return next(err); }
               if (!item) { return next(new Error('can\'t find item')); }
               req.item = item;   // posible error
@@ -37,17 +57,15 @@ app.use(function(req, res, next) {
     });
 
     app.put('/api/usuarios/:id', function(req, res) {
-                var data=req.item;
-                data.phone_number= req.body.phone_number;
-                data.nombre=req.body.nombre;
-                data.apellido=req.body.apellido;
-                data.fecha_nacimiento=req.body.fecha_nacimiento;
-                data.sexo= req.body.sexo;
-                data.save(function (err) {
+                req.item.nombre=req.body.nombre;
+                req.item.apellido=req.body.apellido;
+                req.item.fecha_nacimiento=req.body.fecha_nacimiento;
+                req.item.sexo= req.body.sexo;
+                req.item.save(function (err) {
                   if (err) {
                     console.log(err);
                   }
-                  return res.send(data);
+                  return res.send(req.item);
                 });
     });
 
